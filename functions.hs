@@ -1,4 +1,3 @@
-
 -- Dungeon map is :: Tree Chamber [Encounter]
 -- Each encounter is either a fight or a treasure
 -- Fights deal you damage (reduce HP) but enemies drop some gold (add
@@ -7,6 +6,7 @@
 -- Nodes hold encounters, when you visit a node you go through all of them in order
 -- You start with a certain amount of HP and 0 gold.
 -- You lose HP and accumulate gold as you descend the tree and go through encounters
+
 get_first (a,b) = a
 get_second (a,b) = b
 findindex e l = if (head l)==e then 0 else 1+findindex e (tail l)
@@ -15,6 +15,7 @@ max_of_list l = if length l == 1 then l!!0 else max (head l) (max_of_list(tail l
 sum_of_two_max l = if length(filter(\x->x==(max_of_list l))l)==1 then (max_of_list(filter(\x->x/=(max_of_list l))l)) + max_of_list l else 2*max_of_list l
 sum_of_list [] = 0
 sum_of_list l = (l!!0) + sum_of_list(tail l)
+
 -- Polymorphic tree structure
 data Tree a b = EmptyTree | Leaf a b | Node a b [Tree a b] deriving (Show, Eq)
 get_tree_childs (Node a b l) = l
@@ -29,7 +30,7 @@ data Chamber = Cavern |
                NarrowPassage |
                UndergroundRiver |
                SlipperyRocks deriving (Show, Eq)
-
+               
 -- An enemy has a name, an amount of damage that it deals
 -- and an amount of gold that it drops (in that order).
 data Enemy = Enemy String Integer Integer deriving (Show, Eq)
@@ -64,7 +65,7 @@ calculate_gold_health_helper (Treasure (Gold a)) g h = (g+a,h)
 calculate_gold_health_helper (Treasure (Potion a)) g h = (g,h+a)
 calculate_gold_health [] g h = (g,h)
 calculate_gold_health x g h = calculate_gold_health (tail x) (get_first(calculate_gold_health_helper (head x) g h)) (get_second(calculate_gold_health_helper (head x) g h))
-    
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 -- First argument is starting HP
 -- Second argument is dungeon map
 -- Find which path down the tree yields the most gold for you
@@ -77,6 +78,7 @@ find_max_gain_helper_v2 (g,h) []  = g
 find_max_gain_helper_v2 (g,h) l  = max (find_max_gain_helper (g,h) (head l)) (find_max_gain_helper_v2 (g,h) (tail l))
 find_max_gain_helper (g,h) (Leaf a b) = if get_second(calculate_gold_health b g h)>0 then get_first(calculate_gold_health b g h) else g
 find_max_gain_helper (g,h) (Node a b l) =  if get_second(calculate_gold_health b g h)>0 then find_max_gain_helper_v2 (calculate_gold_health b g h) l else g
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 -- First argument is starting HP
 -- Second argument is the dungeon map
 -- Remove paths that you cannot go thorugh with your starting HP. (By
@@ -96,6 +98,7 @@ fvp_helper_v1 (EmptyTree) hp = EmptyTree
 fvp_helper_v1 (Leaf a b) hp = if get_second(calculate_gold_health b 0 hp)>0 then (Leaf a b) else EmptyTree
 fvp_helper_v1 (Node a b l) hp = if get_second (calculate_gold_health b 0 hp)>0 then xs else EmptyTree
     where xs = if length(filter(\x->get_second(calculate_gold_health(get_tree_encounters x) 0 hp)>0)l)>0 then (Node a b (fvp_helper_v2 l (get_second(calculate_gold_health b 0 hp)))) else  (Leaf a b)
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 -- First argument is starting HP
 -- Second Argument is dungeon map
 -- Find, among the viable paths in the tree (so the nodes you cannot
@@ -110,6 +113,7 @@ max_depth (Leaf a b) = 0
 max_depth (Node a b l) = if length l == 0 then 0 else 1+max_depth_helper l
 max_depth_helper [] = 0
 max_depth_helper l = max (max_depth(head l)) (max_depth_helper(tail l))
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Find the subtree that has the highest total gold/damage ratio
 -- Simply divide the total gold in the subtree by the total damage
 -- in the subtree. You only take whole subtrees (i.e you can take a new
@@ -137,23 +141,3 @@ check_negative_bool (Node a b l) = if (hp_cost_calculator(Node a b l) <=0) then 
 contains_true l = if (length l)==0 then False else (head l)||(contains_true(tail l))
 check_negative (Leaf a b) = (Leaf a b)
 check_negative (Node a b l) = if hp_cost_calculator(Node a b l)<=0 then (Node a b l) else check_negative((filter(\x->check_negative_bool x)l)!!0)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
